@@ -12,20 +12,26 @@ import re
 def index_page(request):
     return render(request, 'index.html')
 
+
 def login_page(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-
-        if username == 'admin' and password == 'admin123':
-            return redirect('/admin_page/')
+        username = request.POST.get('username').strip()
+        password = request.POST.get('password').strip()
 
         user = authenticate(request, username=username, password=password)
+
         if user is not None:
             login(request, user)
+
+            # Admin / Staff redirect
+            if user.is_superuser or user.is_staff:
+                return redirect('/admin_page/')
+
+            # Normal user redirect
             return redirect('/menu/')
         else:
             messages.error(request, 'Invalid username or password')
+
     return render(request, 'login.html')
 
 
