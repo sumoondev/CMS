@@ -22,7 +22,7 @@
       
       <!-- Page Title -->
       <div class="mb-3">
-        <h5 class="fw-bold text-dark mb-1">Our Menu</h5>
+        <h5 class="fw-bold text-dark mb-1">Our Menu <i class="fa fa-utensils text-[#ffc107]"></i></h5>
         <p class="text-muted small mb-0">Choose your favorite items and add to cart</p>
       </div>
 
@@ -75,7 +75,9 @@
 
               <!-- Add to Cart Button -->
               <button 
-                class="btn btn-primary w-100 add-to-cart btn-sm"
+                class="btn btn-warning w-100 add-to-cart btn-sm"
+                data-name="{{ item.item_name }}"
+                data-price="{{ item.price }}" 
                 data-item-id="{{ item.id }}"
                 style="transition: all 0.3s ease; font-size: 0.75rem; padding: 0.35rem 0.5rem;"
               >
@@ -97,21 +99,62 @@
   </div>
 
   <!-- LEFT SIDE (DO NOT TOUCH) -->
-  <div class='shadow-lg' style="flex: 0.45; background-color: #e9ecef; padding: 5px;
-  ">
+<!-- LEFT SIDE -->
+<div class="shadow-lg d-flex flex-column" 
+     style="flex: 0.45; background-color: #e9ecef; padding: 5px;">
 
-    <div style="min-height: 85%; background-color: #212529; ">
+  <!-- Cart Panel -->
+  <div class="d-flex flex-column flex-grow-1 bg-dark text-light rounded p-2">
+
+    <!-- Cart Header -->
+    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-2">
+      <h5 class="mb-0">
+        <i class="fa fa-shopping-cart me-1"></i> My Cart
+      </h5>
+      <span id="cart-count" class="badge bg-warning text-dark">0</span>
     </div>
 
-  <div class="d-grid gap-1">
-  <button class="btn btn-warning" type="button">CheckOut</button>
-  <button class="btn btn-secondary" type="button">Cancel</button>
-</div>
+    <!-- Cart Items -->
+    <div id="cart-container" class="flex-grow-1 overflow-auto pe-1">
+      <!-- Items Render Here -->
+    </div>
+
+    <!-- Cart Footer -->
+    <div class="border-top border-secondary pt-2 mt-2">
+      <div class="d-flex justify-content-between fw-bold mb-2">
+        <span>Total</span>
+        <span id="cart-total" class="text-warning">Rs 0</span>
+      </div>
+
+      <div class="d-grid gap-1">
+        <button class="btn btn-warning btn-sm">
+          <i class="fa fa-credit-card me-1"></i>Checkout
+        </button>
+        <button class="btn btn-outline-light btn-sm" onclick="clearCart()">
+          Cancel
+        </button>
+      </div>
+    </div>
+
   </div>
-
 </div>
-
 <style>
+ #cart-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+#cart-container::-webkit-scrollbar-thumb {
+  background-color: #6c757d;
+  border-radius: 4px;
+}
+
+.cart-item {
+  transition: all 0.2s ease;
+}
+
+.cart-item:hover {
+  background-color: #2c3034 !important;
+} 
   /* Custom Styles for E-commerce Look */
   .food-card {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -159,6 +202,23 @@
     display: none; /* Chrome, Safari, Opera */
   }
 
+  #card-container{
+    padding: 10px;
+  }
+  .carts{
+    display: flex;
+    justify-content: space-between;
+  }
+
+#price_quant{
+ font-size: small;
+ color: #adb7c0;
+}
+
+  /* .carts div{
+    display:flex;
+    flex-direction: column;
+  } */
   /* Responsive adjustments */
   @media (max-width: 576px) {
     .food-card {
@@ -168,6 +228,25 @@
 </style>
 
 <script>
+
+  function getCookies(name){
+    let cookieValue=null;
+    if(document.cookie && document.cookie != ''){
+      const cookies= document.cookie.split(';');
+      for (let i=0; i<cookies.length;i++){
+        const cookie=cookies[i].trim();
+        if(cookie.substring(0,name.length+1) === (name + '=')){
+          cookieValue=decodeURIComponent(cookie.substring(name.length+1));
+        }
+      }
+    }
+    return cookieValue;
+  }  
+
+  const csrftoken= getCookies('csrftoken');
+
+
+
   // Quantity selector functionality
   document.querySelectorAll('.food-card').forEach(card => {
     const minusBtn = card.querySelector('.minus');
@@ -191,28 +270,127 @@
     });
   });
 
-  // Add to cart functionality
-  document.querySelectorAll('.add-to-cart').forEach(btn => {
+
+
+let cart = JSON.parse(localStorage.getItem('cart')) || {} ;
+renderCart()
+
+
+
+
+function addToCart(id, name, price, quantity) {
+
+    if (cart[id]) {
+        cart[id].quantity += quantity;
+    } else {
+        cart[id] = {
+            name: name,
+            price: price,
+            quantity: quantity
+        };
+    }
+
+    saveCart();
+    renderCart();
+}
+
+function saveCart(){
+  localStorage.setItem("cart",JSON.stringify(cart));
+}
+
+function renderCart() {
+
+    let container = document.getElementById('cart-container');
+    let totalElement = document.getElementById('cart-total');
+    let countElement = document.getElementById('cart-count');
+
+    container.innerHTML = "";
+
+    let total_price = 0;
+    let total_items = 0;
+
+    for (let key in cart) {
+
+        let item = cart[key];
+        let itemTotal = item.price * item.quantity;
+
+        total_price += itemTotal;
+        total_items += item.quantity;
+
+        container.innerHTML += `
+            <div class="cart-item p-2 mb-2 rounded border border-secondary bg-dark">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <h6 class="fw-bold mb-1">${item.name}</h6>
+                        <small class="text-muted " id="price_quant">
+                            Rs ${item.price} × ${item.quantity}
+                        </small>
+                    </div>
+
+                    <div class="text-end">
+                        <div class="fw-bold text-warning">
+                            Rs ${itemTotal}
+                        </div>
+
+                        <button class="btn btn-sm btn-outline-danger mt-1 remove-item"
+                                data-id="${key}">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+    }
+
+    totalElement.innerText = `Rs ${total_price}`;
+    countElement.innerText = total_items;
+
+    attachRemoveEvents();
+}
+
+function attachRemoveEvents() {
+    document.querySelectorAll('.remove-item').forEach(btn => {
+        btn.addEventListener('click', function () {
+            delete cart[this.dataset.id];
+            saveCart();
+            renderCart();
+        });
+    });
+}
+
+function clearCart() {
+    cart = {};
+    saveCart();
+    renderCart();
+}
+
+document.querySelectorAll('.add-to-cart').forEach(btn => {
+
     btn.addEventListener('click', function() {
-      const itemId = this.getAttribute('data-item-id');
-      const card = this.closest('.food-card');
-      const quantity = parseInt(card.querySelector('.qty-value').textContent);
-      
-      // Add your AJAX call here to add item to cart
-      console.log(`Adding item ${itemId} with quantity ${quantity} to cart`);
-      
-      // Visual feedback
-      this.innerHTML = '<i class="fa fa-check me-1"></i>Added!';
-      setTimeout(() => {
-        this.innerHTML = '<i class="fa fa-cart-plus me-1"></i>Add';
-      }, 1500);
+
+        const itemId = this.dataset.itemId;
+        const name = this.dataset.name;
+        const price = parseFloat(this.dataset.price);
+
+        const card = this.closest('.food-card');
+        const qtyElement = card.querySelector('.qty-value');
+        const quantity = qtyElement ? parseInt(qtyElement.textContent) : 1;
+
+        addToCart(itemId, name, price, quantity);
+
+        // Visual feedback
+        this.innerHTML = '<i class="fa fa-check me-1"></i>Added!';
+        setTimeout(() => {
+            this.innerHTML = '<i class="fa fa-cart-plus me-1"></i>Add';
+        }, 1500);
+
     });
 
-
-  });
-
-
-
+});
 </script>
 
 {% endblock %}

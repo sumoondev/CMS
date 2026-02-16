@@ -37,6 +37,7 @@ urlpatterns = [
     path('admin_page/update_item/<int:item_id>/', admin_update_item, name='admin_update_item'),
     path('admin_page/delete_item/<int:item_id>/', admin_delete_item, name='admin_delete_item'),
     path('payment/', payment_page, name='payment_page'),
+    path("add/", add_to_cart, name="add_to_cart"),
 ]
 
 if settings.DEBUG:
