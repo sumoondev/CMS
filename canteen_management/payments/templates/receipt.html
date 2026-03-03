@@ -1,0 +1,51 @@
+{% extends "index.html" %}
+{% block start %}
+<div class="container mt-4">
+
+    <div class="card shadow p-4">
+
+        <h4 class="text-center mb-3">NCE Canteen Receipt</h4>
+
+        <p><strong>Receipt ID:</strong> {{ order.id }}</p>
+        <p><strong>Order ID:</strong> {{ order.id }}</p>
+        <p><strong>Date:</strong> {{ order.order_date }}</p>
+
+        <hr>
+
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>{{ item.item.item_name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>Rs {{ item.price_at_purchase }}</td>
+                    <td>
+                        Rs {{ item.price_at_purchase|floatformat:2|add:""|floatformat }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h5 class="text-end">Grand Total: Rs {{ order.total_amount }}</h5>
+
+        <div class="text-center mt-3">
+            <button onclick="window.print()" class="btn btn-warning">
+                Print Receipt
+            </button>
+            <a href="/menu/" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

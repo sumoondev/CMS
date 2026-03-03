@@ -127,7 +127,7 @@
       </div>
 
       <div class="d-grid gap-1">
-        <button class="btn btn-warning btn-sm">
+        <button class="btn btn-warning btn-sm" onclick="checkout()">
           <i class="fa fa-credit-card me-1"></i>Checkout
         </button>
         <button class="btn btn-outline-light btn-sm" onclick="clearCart()">
@@ -391,6 +391,40 @@ document.querySelectorAll('.add-to-cart').forEach(btn => {
     });
 
 });
+
+
+function checkout() {
+
+    if (Object.keys(cart).length === 0) {
+        alert("Cart is empty!");
+        return;
+    }
+
+    fetch("/checkout/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken
+        },
+        body: JSON.stringify({ cart: cart })
+    })
+    .then(response => response.json())
+    .then(data => {
+
+        if (data.success) {
+
+            clearCart();
+
+            
+            window.location.href = `/receipt/${data.order_id}/`;
+
+        } else {
+            alert(data.error);
+        }
+
+    })
+    .catch(error => console.error(error));
+}
 </script>
 
 {% endblock %}

@@ -15,16 +15,3 @@ def inventory_list(request):
     context = {'inventory': items}
     return render(request, 'menu.html', context)
 
-
-def add_to_cart(request):
-    if request.method=="POST":
-        data=json.loads(request.body)
-        product_id=str(data.get("product_id"))
-        product_id
-
-        
-
-    return render(request,'menu.html',context)
-
-def payment_page(request):
-    return HttpResponse("Payment Page")

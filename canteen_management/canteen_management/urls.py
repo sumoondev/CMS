@@ -36,8 +36,8 @@ urlpatterns = [
     path('', index_page, name='index_page'),
     path('admin_page/update_item/<int:item_id>/', admin_update_item, name='admin_update_item'),
     path('admin_page/delete_item/<int:item_id>/', admin_delete_item, name='admin_delete_item'),
-    path('payment/', payment_page, name='payment_page'),
-    path("add/", add_to_cart, name="add_to_cart"),
+    path('checkout/', checkout, name='checkout'),
+    path('receipt/<int:order_id>/', receipt_view, name='receipt'),
 ]
 
 if settings.DEBUG:
