@@ -218,20 +218,20 @@
         <div class="card-body">
           <div class="d-flex justify-content-between mb-2">
             <span><i class="fa fa-box"></i> Total Items:</span>
-            <strong>{{ inventory.count }}</strong>
+            <strong>{{ stats.total_items }}</strong>
           </div>
           <div class="d-flex justify-content-between mb-2">
             <span><i class="fa fa-check text-success"></i> Available:</span>
-            <strong class="text-success">{{ inventory|length }}</strong>
+            <strong class="text-success">{{ stats.available_items }}</strong>
           </div>
           <div class="d-flex justify-content-between">
             
             <span
               ><i class="fa fa-exclamation-triangle text-warning"></i> Low
-              Stock:</span
+              Stock (&lt; {{ low_stock_threshold }}):</span
             >
             
-            <strong class="text-warning">0</strong>
+            <strong class="text-warning">{{ stats.low_stock_items }}</strong>
           </div>
         </div>
       </div>

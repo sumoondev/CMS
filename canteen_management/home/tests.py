@@ -65,6 +65,38 @@ class AdminAccessControlTests(TestCase):
         self.assertEqual(dashboard_response.status_code, 200)
         self.assertEqual(update_response.status_code, 200)
 
+    def test_admin_page_get_does_not_show_success_message(self):
+        self.client.login(username='admin_user', password='testpass123')
+
+        response = self.client.get(reverse('admin_page'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'Item added successfully!')
+
+    def test_admin_page_shows_real_inventory_stats(self):
+        Inventory.objects.create(
+            item_name='Burger',
+            category='snacks',
+            price='150.00',
+            quantity=3,
+            is_available=True,
+        )
+        Inventory.objects.create(
+            item_name='Coffee',
+            category='beverages',
+            price='60.00',
+            quantity=6,
+            is_available=False,
+        )
+        self.client.login(username='admin_user', password='testpass123')
+
+        response = self.client.get(reverse('admin_page'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['stats']['total_items'], 3)
+        self.assertEqual(response.context['stats']['available_items'], 2)
+        self.assertEqual(response.context['stats']['low_stock_items'], 2)
+
     def test_admin_delete_requires_post(self):
         self.client.login(username='admin_user', password='testpass123')
 
@@ -200,3 +232,21 @@ class InventoryFormValidationTests(TestCase):
         self.item.refresh_from_db()
         self.assertEqual(self.item.item_name, 'Momo')
         self.assertFalse(bool(self.item.food_image))
+
+    def test_admin_page_create_respects_unchecked_is_available(self):
+        response = self.client.post(
+            reverse('admin_page'),
+            {
+                'item_name': 'Hidden Item',
+                'category': 'other',
+                'price': '50.00',
+                'quantity': '4',
+            },
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse('admin_page'))
+        self.assertContains(response, 'Item added successfully!')
+
+        item = Inventory.objects.get(item_name='Hidden Item')
+        self.assertFalse(item.is_available)

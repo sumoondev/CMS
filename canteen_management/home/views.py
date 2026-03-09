@@ -11,6 +11,7 @@ from .forms import InventoryItemForm, RegistrationForm
 
 
 # Create your views here.
+LOW_STOCK_THRESHOLD = 10
 
 
 def admin_required(view_func):
@@ -73,20 +74,27 @@ def logout_view(request):
 
 @admin_required
 def admin_page(request):
-    item_form = InventoryItemForm(request.POST or None, request.FILES or None)
-
     if request.method == 'POST':
+        item_form = InventoryItemForm(request.POST, request.FILES)
         if item_form.is_valid():
             item_form.save()
             messages.success(request, 'Item added successfully!')
             return redirect('/admin_page/')
 
         messages.error(request, 'Please correct the item form errors below.')
+    else:
+        item_form = InventoryItemForm()
 
-    queryset = Inventory.objects.all()
+    queryset = Inventory.objects.all().order_by('item_name')
     context = {
         'inventory': queryset,
         'item_form': item_form,
+        'stats': {
+            'total_items': queryset.count(),
+            'available_items': queryset.filter(is_available=True).count(),
+            'low_stock_items': queryset.filter(quantity__lt=LOW_STOCK_THRESHOLD).count(),
+        },
+        'low_stock_threshold': LOW_STOCK_THRESHOLD,
     }
        
     return render(request, 'admin.html', context)
