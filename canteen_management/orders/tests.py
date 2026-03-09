@@ -1,5 +1,6 @@
 import json
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -103,3 +104,19 @@ class CheckoutTests(TestCase):
         self.assertEqual(self.item_one.quantity, 3)
         self.assertEqual(self.item_two.quantity, 0)
         self.assertFalse(self.item_two.is_available)
+
+    def test_checkout_rolls_back_if_payment_creation_fails(self):
+        with patch('orders.views.Payment.objects.create', side_effect=RuntimeError('payment failed')):
+            with self.assertRaises(RuntimeError):
+                self.post_checkout({
+                    str(self.item_one.id): {'quantity': 2},
+                })
+
+        self.assertEqual(Order.objects.count(), 0)
+        self.assertEqual(OrderItem.objects.count(), 0)
+        self.assertEqual(Payment.objects.count(), 0)
+        self.assertEqual(Receipt.objects.count(), 0)
+
+        self.item_one.refresh_from_db()
+        self.assertEqual(self.item_one.quantity, 5)
+        self.assertTrue(self.item_one.is_available)
