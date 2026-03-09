@@ -1,3 +1,4 @@
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -103,7 +104,8 @@ class RegistrationTests(TestCase):
             },
         )
 
-        self.assertRedirects(response, self.register_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'UserCode already exists')
         self.assertEqual(CustomUser.objects.filter(username='new_user').count(), 0)
 
     def test_registration_rejects_invalid_role(self):
@@ -117,7 +119,8 @@ class RegistrationTests(TestCase):
             },
         )
 
-        self.assertRedirects(response, self.register_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Invalid role selected')
         self.assertFalse(CustomUser.objects.filter(username='fake_admin').exists())
 
     def test_registration_creates_non_admin_user(self):
@@ -136,3 +139,64 @@ class RegistrationTests(TestCase):
         user = CustomUser.objects.get(username='teacher_user')
         self.assertEqual(user.role, 'teacher')
         self.assertFalse(user.is_staff)
+
+
+@override_settings(ALLOWED_HOSTS=['testserver', 'localhost'])
+class InventoryFormValidationTests(TestCase):
+    def setUp(self):
+        self.admin_user = CustomUser.objects.create_user(
+            username='inventory_admin',
+            password='testpass123',
+            user_code='44444',
+            role='admin',
+        )
+        self.client.login(username='inventory_admin', password='testpass123')
+        self.item = Inventory.objects.create(
+            item_name='Momo',
+            category='snacks',
+            price='120.00',
+            quantity=10,
+            is_available=True,
+        )
+
+    def test_admin_page_rejects_negative_price(self):
+        response = self.client.post(
+            reverse('admin_page'),
+            {
+                'item_name': 'Bad Item',
+                'category': 'snacks',
+                'price': '-10.00',
+                'quantity': '5',
+                'is_available': 'on',
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Price cannot be negative.')
+        self.assertFalse(Inventory.objects.filter(item_name='Bad Item').exists())
+
+    def test_admin_update_rejects_invalid_image_upload(self):
+        invalid_file = SimpleUploadedFile(
+            'not-an-image.txt',
+            b'plain text content',
+            content_type='text/plain',
+        )
+
+        response = self.client.post(
+            reverse('admin_update_item', args=[self.item.id]),
+            {
+                'item_name': 'Momo',
+                'category': 'snacks',
+                'price': '120.00',
+                'quantity': '10',
+                'is_available': 'on',
+                'food_image': invalid_file,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Upload a valid image')
+
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.item_name, 'Momo')
+        self.assertFalse(bool(self.item.food_image))

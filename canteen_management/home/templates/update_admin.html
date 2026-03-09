@@ -32,6 +32,14 @@
         </div>
 
         <div class="card-body">
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}
+              <div>{{ error }}</div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
           <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
 
@@ -40,13 +48,10 @@
               <label class="form-label">
                 <i class="fa fa-utensils"></i> Item Name
               </label>
-              <input
-                type="text"
-                class="form-control"
-                name="item_name"
-                value="{{ item.item_name }}"
-                required
-              />
+              {{ form.item_name }}
+              {% for error in form.item_name.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+              {% endfor %}
             </div>
 
             <!-- Category -->
@@ -54,14 +59,10 @@
               <label class="form-label">
                 <i class="fa fa-folder"></i> Category
               </label>
-              <select class="form-select" name="category" required>
-                <option value="">Select Category</option>
-                <option value="snacks" {% if item.category == "snacks" %}selected{% endif %}>Snacks</option>
-                <option value="beverages" {% if item.category == "beverages" %}selected{% endif %}>Beverages</option>
-                <option value="main_course" {% if item.category == "main_course" %}selected{% endif %}>Main Course</option>
-                <option value="desserts" {% if item.category == "desserts" %}selected{% endif %}>Desserts</option>
-                <option value="other" {% if item.category == "other" %}selected{% endif %}>Other</option>
-              </select>
+              {{ form.category }}
+              {% for error in form.category.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+              {% endfor %}
             </div>
 
             <!-- Price -->
@@ -69,15 +70,10 @@
               <label class="form-label">
                 <i class="fa fa-dollar-sign"></i> Price (Rs.)
               </label>
-              <input
-                type="number"
-                class="form-control"
-                name="price"
-                step="0.01"
-                min="0"
-                value="{{ item.price }}"
-                required
-              />
+              {{ form.price }}
+              {% for error in form.price.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+              {% endfor %}
             </div>
 
             <!-- Quantity -->
@@ -85,14 +81,10 @@
               <label class="form-label">
                 <i class="fa fa-boxes"></i> Quantity
               </label>
-              <input
-                type="number"
-                class="form-control"
-                name="quantity"
-                min="0"
-                value="{{ item.quantity }}"
-                required
-              />
+              {{ form.quantity }}
+              {% for error in form.quantity.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+              {% endfor %}
             </div>
 
             <!-- Image -->
@@ -100,7 +92,10 @@
               <label class="form-label">
                 <i class="fa fa-image"></i> Food Image
               </label>
-              <input type="file" name="food_image" class="form-control" />
+              {{ form.food_image }}
+              {% for error in form.food_image.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+              {% endfor %}
 
               {% if item.food_image %}
                 <div class="mt-2">
@@ -117,15 +112,13 @@
 
             <!-- Availability -->
             <div class="mb-4 form-check">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                name="is_available"
-                {% if item.is_available %}checked{% endif %}
-              />
+              {{ form.is_available }}
               <label class="form-check-label">
                 <i class="fa fa-check-circle"></i> Mark as Available
               </label>
+              {% for error in form.is_available.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+              {% endfor %}
             </div>
 
             <!-- Buttons -->

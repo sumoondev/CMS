@@ -11,20 +11,37 @@
       <h2 class="text-center">Register</h2>
       <hr />
 
-      <label for="role" class="form-label">Role:</label>
-      <select name="role" id="role" class="form-select mb-2">
-        <option value="student">Student</option>
-        <option value="teacher">Teacher</option>
-      </select>
+      {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        {% for error in form.non_field_errors %}
+          <div>{{ error }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <label for="{{ form.role.id_for_label }}" class="form-label">Role:</label>
+      {{ form.role }}
+      {% for error in form.role.errors %}
+      <div class="text-danger small mb-2">{{ error }}</div>
+      {% endfor %}
 
       <label class="form-label">UserCode:</label>
-      <input type="text" name="user_code" class="form-control mb-2" required>
+      {{ form.user_code }}
+      {% for error in form.user_code.errors %}
+      <div class="text-danger small mb-2">{{ error }}</div>
+      {% endfor %}
 
       <label class="form-label">Username:</label>
-      <input type="text" name="username" class="form-control mb-2" required>
+      {{ form.username }}
+      {% for error in form.username.errors %}
+      <div class="text-danger small mb-2">{{ error }}</div>
+      {% endfor %}
 
       <label class="form-label">Password:</label>
-      <input type="password" name="password" class="form-control mb-2" required>
+      {{ form.password }}
+      {% for error in form.password.errors %}
+      <div class="text-danger small mb-2">{{ error }}</div>
+      {% endfor %}
 
       <p class="mt-2">Already have an account? <a href="/login/">Log In</a></p>
 
