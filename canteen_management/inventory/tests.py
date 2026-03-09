@@ -41,6 +41,7 @@ class InventoryImageRenderingTests(TestCase):
         response = self.client.get(reverse('inventory_list'))
 
         self.assertContains(response, '/media/inventory_images/test-image.jpg')
+        self.assertContains(response, 'data-fallback-src="/static/inventory_images/momo.webp"')
 
     def test_menu_uses_static_fallback_for_missing_image(self):
         Inventory.objects.create(
@@ -54,3 +55,17 @@ class InventoryImageRenderingTests(TestCase):
         response = self.client.get(reverse('inventory_list'))
 
         self.assertContains(response, '/static/inventory_images/momo.webp')
+
+    def test_menu_script_renders_cart_without_innerhtml_templates(self):
+        Inventory.objects.create(
+            item_name='Safe Item',
+            category='snacks',
+            price='30.00',
+            quantity=2,
+            is_available=True,
+        )
+
+        response = self.client.get(reverse('inventory_list'))
+
+        self.assertContains(response, 'container.replaceChildren()')
+        self.assertNotContains(response, 'container.innerHTML +=')
