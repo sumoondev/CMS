@@ -83,6 +83,10 @@ class CustomUser(AbstractUser):
             raise ValidationError({'user_code': 'User code must be exactly 5 digits.'})
 
     def save(self, *args, **kwargs):
+        update_fields = kwargs.get('update_fields')
+        if update_fields is not None and set(update_fields) == {'last_login'}:
+            return super().save(*args, **kwargs)
+
         if not self.role and (self.is_staff or self.is_superuser):
             self.role = 'admin'
 

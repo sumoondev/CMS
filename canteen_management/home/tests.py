@@ -174,6 +174,40 @@ class RegistrationTests(TestCase):
 
 
 @override_settings(ALLOWED_HOSTS=['testserver', 'localhost'])
+class LegacyAdminLoginTests(TestCase):
+    def setUp(self):
+        self.admin_user = CustomUser.objects.create_superuser(
+            username='admin',
+            password='admin',
+            user_code='99999',
+        )
+        CustomUser.objects.filter(pk=self.admin_user.pk).update(user_code='')
+
+    def test_legacy_admin_can_log_in_through_app_login(self):
+        response = self.client.post(
+            reverse('login'),
+            {
+                'username': 'admin',
+                'password': 'admin',
+            },
+        )
+
+        self.assertRedirects(response, reverse('admin_page'))
+
+    def test_legacy_admin_can_log_in_through_django_admin_login(self):
+        response = self.client.post(
+            reverse('admin:login'),
+            {
+                'username': 'admin',
+                'password': 'admin',
+                'next': reverse('admin:index'),
+            },
+        )
+
+        self.assertRedirects(response, reverse('admin:index'))
+
+
+@override_settings(ALLOWED_HOSTS=['testserver', 'localhost'])
 class InventoryFormValidationTests(TestCase):
     def setUp(self):
         self.admin_user = CustomUser.objects.create_user(
