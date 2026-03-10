@@ -27,6 +27,27 @@
         <p class="text-muted small mb-0">Choose your favorite items and add to cart</p>
       </div>
 
+      <!-- Search + Category Filters -->
+      <div class="menu-controls d-flex flex-column flex-md-row align-items-md-center gap-2 mb-3">
+        <div class="flex-grow-1">
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-white"><i class="fa fa-search text-muted"></i></span>
+            <input
+              type="text"
+              class="form-control"
+              id="menu-search"
+              placeholder="Search items (e.g. momo, tea)"
+              aria-label="Search menu items"
+            >
+          </div>
+        </div>
+        <div id="category-chips" class="d-flex flex-wrap gap-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary category-chip active" data-category="all">
+            All
+          </button>
+        </div>
+      </div>
+
       <!-- Menu Grid -->
       <div class="row g-2">
         {% for item in inventory %}
@@ -35,6 +56,9 @@
             class="card food-card h-100 border-0 shadow-sm"
             data-item-id="{{ item.id }}"
             data-stock="{{ item.quantity }}"
+            data-category="{{ item.category }}"
+            data-category-label="{{ item.get_category_display }}"
+            data-name="{{ item.item_name }}"
           >
             
             <!-- Food Image Container -->
@@ -107,6 +131,10 @@
         </div>
         {% endfor %}
       </div>
+      <div id="menu-empty" class="text-center py-5 d-none">
+        <i class="fa fa-search fa-3x text-muted mb-3"></i>
+        <p class="text-muted mb-0">No items match your filters.</p>
+      </div>
 
     </div>
   </div>
@@ -119,7 +147,7 @@
   <div class="d-flex flex-column flex-grow-1 bg-dark text-light rounded p-2">
 
     <!-- Cart Header -->
-    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-2">
+    <div class="cart-header d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-2">
       <h5 class="mb-0">
         <i class="fa fa-shopping-cart me-1"></i> My Cart
       </h5>
@@ -139,8 +167,9 @@
       </div>
 
       <div class="d-grid gap-1">
-        <button class="btn btn-warning btn-sm" onclick="checkout()">
-          <i class="fa fa-credit-card me-1"></i>Checkout
+        <button class="btn btn-warning btn-sm" id="checkout-button" onclick="checkout()" type="button">
+          <span class="checkout-label"><i class="fa fa-credit-card me-1"></i>Checkout</span>
+          <span id="checkout-spinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
         </button>
         <button class="btn btn-outline-light btn-sm" onclick="clearCart()">
           Cancel
@@ -148,6 +177,15 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<div class="toast-container position-fixed top-0 end-0 p-3">
+  <div id="menu-toast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div id="menu-toast-body" class="toast-body">Something went wrong.</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
   </div>
 </div>
 <style>
@@ -176,6 +214,28 @@
   padding: 5px;
 }
 
+.menu-controls .form-control:focus {
+  box-shadow: none;
+}
+
+.category-chip {
+  border-radius: 999px;
+  transition: all 0.2s ease;
+}
+
+.category-chip.active {
+  background-color: #212529;
+  border-color: #212529;
+  color: #fff;
+}
+
+.cart-header {
+  position: sticky;
+  top: 0;
+  background-color: #212529;
+  z-index: 2;
+}
+
 .cart-item {
   transition: all 0.2s ease;
 }
@@ -195,8 +255,12 @@
     box-shadow: 0 6px 16px rgba(0,0,0,0.15) !important;
   }
 
+  .add-to-cart {
+    transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  }
+
   .add-to-cart:hover {
-    transform: scale(1.02);
+    transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
   }
 
@@ -242,6 +306,15 @@
  font-size: small;
  color: #adb7c0;
 }
+
+  @media (prefers-reduced-motion: reduce) {
+    .food-card,
+    .food-image,
+    .add-to-cart,
+    .category-chip {
+      transition: none !important;
+    }
+  }
 
   /* .carts div{
     display:flex;
@@ -308,6 +381,34 @@
 
 
 	  const stockByItemId = {};
+  const searchInput = document.getElementById('menu-search');
+  const chipContainer = document.getElementById('category-chips');
+  const emptyState = document.getElementById('menu-empty');
+  const checkoutButton = document.getElementById('checkout-button');
+  const checkoutSpinner = document.getElementById('checkout-spinner');
+  let activeCategory = 'all';
+
+  function showToast(message, variant = 'danger') {
+    const toastElement = document.getElementById('menu-toast');
+    const toastBody = document.getElementById('menu-toast-body');
+    if (!toastElement || !toastBody || typeof bootstrap === 'undefined') {
+      alert(message);
+      return;
+    }
+
+    toastElement.classList.remove('text-bg-danger', 'text-bg-warning', 'text-bg-success', 'text-bg-info');
+    toastElement.classList.add(`text-bg-${variant}`);
+    toastBody.textContent = message;
+    bootstrap.Toast.getOrCreateInstance(toastElement, { delay: 3500 }).show();
+  }
+
+  function setCheckoutLoading(isLoading) {
+    if (!checkoutButton || !checkoutSpinner) {
+      return;
+    }
+    checkoutButton.disabled = isLoading;
+    checkoutSpinner.classList.toggle('d-none', !isLoading);
+  }
 
   function getSafeQuantity(value) {
     const quantity = Number.parseInt(value, 10);
@@ -339,6 +440,77 @@
 
     return sanitizedCart;
   }
+
+  function buildCategoryChips() {
+    if (!chipContainer) {
+      return;
+    }
+
+    const categories = new Map();
+    document.querySelectorAll('.food-card').forEach(card => {
+      const category = card.dataset.category;
+      const label = card.dataset.categoryLabel || category;
+      if (category && label) {
+        categories.set(category, label);
+      }
+    });
+
+    categories.forEach((label, category) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'btn btn-sm btn-outline-secondary category-chip';
+      chip.dataset.category = category;
+      chip.textContent = label;
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.category-chip').forEach(btn => btn.classList.remove('active'));
+        chip.classList.add('active');
+        activeCategory = category;
+        filterMenu();
+      });
+      chipContainer.appendChild(chip);
+    });
+  }
+
+  function filterMenu() {
+    const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    let visibleCount = 0;
+    document.querySelectorAll('.food-card').forEach(card => {
+      const name = (card.dataset.name || '').toLowerCase();
+      const matchesCategory = activeCategory === 'all' || card.dataset.category === activeCategory;
+      const matchesQuery = !query || name.includes(query);
+      const shouldShow = matchesCategory && matchesQuery;
+      const col = card.parentElement;
+      if (col) {
+        col.classList.toggle('d-none', !shouldShow);
+      }
+      if (shouldShow) {
+        visibleCount += 1;
+      }
+    });
+
+    if (emptyState) {
+      emptyState.classList.toggle('d-none', visibleCount > 0);
+    }
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', filterMenu);
+  }
+
+  if (chipContainer) {
+    const allChip = chipContainer.querySelector('[data-category="all"]');
+    if (allChip) {
+      allChip.addEventListener('click', () => {
+        document.querySelectorAll('.category-chip').forEach(btn => btn.classList.remove('active'));
+        allChip.classList.add('active');
+        activeCategory = 'all';
+        filterMenu();
+      });
+    }
+  }
+
+  buildCategoryChips();
+  filterMenu();
 
   // Quantity selector functionality
   document.querySelectorAll('.food-card').forEach(card => {
@@ -391,12 +563,12 @@
     const safeQuantity = getSafeQuantity(quantity);
 
     if (availableStock < 1) {
-      alert(`${name} is currently out of stock.`);
+      showToast(`${name} is currently out of stock.`, 'warning');
       return false;
     }
 
     if (safeQuantity < 1) {
-      alert('Please choose at least 1 item.');
+      showToast('Please choose at least 1 item.', 'warning');
       return false;
     }
 
@@ -404,7 +576,7 @@
     const nextQuantity = Math.min(existingQuantity + safeQuantity, availableStock);
 
     if (nextQuantity === existingQuantity) {
-      alert(`Only ${availableStock} ${name} item(s) available.`);
+      showToast(`Only ${availableStock} ${name} item(s) available.`, 'warning');
       return false;
     }
 
@@ -536,10 +708,11 @@ function checkout() {
     saveCart();
 
     if (Object.keys(cart).length === 0) {
-        alert("Cart is empty!");
+        showToast("Cart is empty!", 'warning');
         return;
     }
 
+    setCheckoutLoading(true);
     fetch("/checkout/", {
         method: "POST",
         headers: {
@@ -548,22 +721,26 @@ function checkout() {
         },
         body: JSON.stringify({ cart: cart })
     })
-    .then(response => response.json())
-    .then(data => {
-
-        if (data.success) {
-
-            clearCart();
-
-            
-            window.location.href = `/receipt/${data.order_id}/`;
-
-        } else {
-            alert(data.error);
+    .then(response => {
+        if (response.redirected && response.url.includes('/login')) {
+            window.location.href = response.url;
+            return null;
         }
-
+        return response.json().then(data => ({ ok: response.ok, data }));
     })
-    .catch(error => console.error(error));
+    .then(payload => {
+        if (!payload) {
+            return;
+        }
+        if (payload.ok && payload.data.success) {
+            clearCart();
+            window.location.href = `/receipt/${payload.data.order_id}/`;
+        } else {
+            showToast(payload.data.error || 'Checkout failed. Please try again.', 'danger');
+        }
+    })
+    .catch(() => showToast('Checkout failed. Please try again.', 'danger'))
+    .finally(() => setCheckoutLoading(false));
 }
 </script>
 
