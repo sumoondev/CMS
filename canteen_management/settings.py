@@ -182,7 +182,14 @@ STATICFILES_DIRS = [
     BASE_DIR / 'public' / 'static',
 ]
 MEDIA_URL = '/media/'
-MEDIA_ROOT = Path(os.environ.get('DJANGO_MEDIA_ROOT', str(BASE_DIR / 'public' / 'media')))
+RAILWAY_VOLUME_MOUNT_PATH = os.environ.get('RAILWAY_VOLUME_MOUNT_PATH', '').strip()
+DEFAULT_MEDIA_ROOT = str(BASE_DIR / 'public' / 'media')
+if os.environ.get('DJANGO_MEDIA_ROOT'):
+    MEDIA_ROOT = Path(os.environ['DJANGO_MEDIA_ROOT'])
+elif RAILWAY_VOLUME_MOUNT_PATH:
+    MEDIA_ROOT = Path(RAILWAY_VOLUME_MOUNT_PATH) / 'media'
+else:
+    MEDIA_ROOT = Path(DEFAULT_MEDIA_ROOT)
 
 STORAGES = {
     'staticfiles': {
