@@ -86,12 +86,27 @@ WSGI_APPLICATION = 'canteen_management.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+DB_ENGINE = os.environ.get('DJANGO_DB_ENGINE', 'django.db.backends.postgresql')
+
+if DB_ENGINE == 'django.db.backends.sqlite3':
+    DB_NAME = os.environ.get('DJANGO_DB_NAME', str(BASE_DIR / 'db.sqlite3'))
+    DATABASES = {
+        'default': {
+            'ENGINE': DB_ENGINE,
+            'NAME': DB_NAME,
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': DB_ENGINE,
+            'NAME': os.environ.get('DJANGO_DB_NAME', 'canteen_management'),
+            'USER': os.environ.get('DJANGO_DB_USER', 'postgres'),
+            'PASSWORD': os.environ.get('DJANGO_DB_PASSWORD', ''),
+            'HOST': os.environ.get('DJANGO_DB_HOST', 'localhost'),
+            'PORT': os.environ.get('DJANGO_DB_PORT', '5432'),
+        }
+    }
 
 
 # Password validation
