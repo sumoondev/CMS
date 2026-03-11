@@ -170,6 +170,7 @@ USE_TZ = True
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = env_bool('DJANGO_SECURE_SSL_REDIRECT', False)
+SERVE_MEDIA = env_bool('DJANGO_SERVE_MEDIA', False)
 
 
 # Static files (CSS, JavaScript, Images)
@@ -202,6 +203,7 @@ if USE_S3:
     AWS_S3_CUSTOM_DOMAIN = os.environ.get('AWS_S3_CUSTOM_DOMAIN', '')
     AWS_DEFAULT_ACL = None
     AWS_QUERYSTRING_AUTH = False
+    AWS_S3_FILE_OVERWRITE = env_bool('DJANGO_S3_FILE_OVERWRITE', False)
 
     STORAGES['default'] = {
         'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
