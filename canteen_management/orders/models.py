@@ -7,7 +7,8 @@ from inventory.models import Inventory
 class Order(models.Model):
     user=models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='orders',
     )
     order_date=models.DateTimeField(auto_now_add=True)
     total_amount=models.DecimalField(

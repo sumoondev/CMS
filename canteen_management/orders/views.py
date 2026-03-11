@@ -77,12 +77,14 @@ def checkout(request):
         with transaction.atomic():
             validated_items = _validate_inventory(normalized_cart)
 
+            total_amount = Decimal("0.00")
+            for inventory_item, quantity in validated_items:
+                total_amount += inventory_item.price * quantity
+
             order = Order.objects.create(
                 user=request.user,
-                total_amount=Decimal("0.00"),
+                total_amount=total_amount,
             )
-
-            total_amount = Decimal("0.00")
 
             for inventory_item, quantity in validated_items:
                 price = inventory_item.price
@@ -98,10 +100,6 @@ def checkout(request):
                 if inventory_item.quantity == 0:
                     inventory_item.is_available = False
                 inventory_item.save(update_fields=["quantity", "is_available"])
-
-                total_amount += price * quantity
-
-            order.total_amount = total_amount
             Payment.objects.create(
                 order=order,
                 payment_method="CASH",
@@ -109,7 +107,7 @@ def checkout(request):
             )
             Receipt.objects.create(order=order)
             order.is_paid = True
-            order.save(update_fields=["total_amount", "is_paid"])
+            order.save(update_fields=["is_paid"])
     except CheckoutValidationError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
 

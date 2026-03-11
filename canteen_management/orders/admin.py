@@ -6,6 +6,8 @@ from .models import Order, OrderItem
 class OrderItemInline(admin.TabularInline):
     model=OrderItem
     extra=0
+    readonly_fields = ('item', 'quantity', 'price_at_purchase')
+    can_delete = False
 
 
 @admin.register(Order)

@@ -161,6 +161,7 @@ class RegistrationTests(TestCase):
             {
                 'username': 'teacher_user',
                 'password': 'testpass123',
+                'password_confirm': 'testpass123',
                 'user_code': '33333',
                 'role': 'teacher',
             },

@@ -12,7 +12,7 @@ class Inventory(models.Model):
         ('other', 'Other'),
     ))
     price=models.DecimalField(max_digits=6,decimal_places=2)
-    quantity=models.PositiveBigIntegerField()
+    quantity=models.PositiveIntegerField()
     food_image=models.ImageField(upload_to='inventory_images/', null=True, blank=True)
     is_available=models.BooleanField(default=True)
 

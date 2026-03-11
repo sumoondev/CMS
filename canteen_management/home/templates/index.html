@@ -146,6 +146,146 @@
             color: var(--accent);
         }
 
+        /* ── Global Animation Keyframes ── */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            15%, 45%, 75% { transform: translateX(-6px); }
+            30%, 60%, 90% { transform: translateX(6px); }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        @keyframes shimmer {
+            0%   { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Utility animation classes */
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease both;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease both;
+        }
+        .animate-slide-right {
+            animation: slideInRight 0.45s ease both;
+        }
+        .animate-slide-left {
+            animation: slideInLeft 0.45s ease both;
+        }
+        .animate-slide-down {
+            animation: slideDown 0.4s ease both;
+        }
+        .animate-shake {
+            animation: shake 0.5s ease;
+        }
+        .animate-pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* Stagger delays for sequential entrance */
+        .stagger-1 { animation-delay: 0.05s; }
+        .stagger-2 { animation-delay: 0.1s; }
+        .stagger-3 { animation-delay: 0.15s; }
+        .stagger-4 { animation-delay: 0.2s; }
+        .stagger-5 { animation-delay: 0.25s; }
+        .stagger-6 { animation-delay: 0.3s; }
+        .stagger-7 { animation-delay: 0.35s; }
+
+        /* Global button micro-interactions */
+        .btn {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Input focus glow */
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.15);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        /* Smooth alert entrance */
+        .alert {
+            animation: slideDown 0.35s ease both;
+        }
+
+        /* Loading spinner for submit buttons */
+        .btn .btn-spinner {
+            display: none;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            vertical-align: middle;
+        }
+        .btn.is-loading .btn-spinner {
+            display: inline-block;
+        }
+        .btn.is-loading .btn-label {
+            opacity: 0.6;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Password strength bar */
+        .strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            background: #e5e7eb;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .strength-bar-fill {
+            height: 100%;
+            width: 0;
+            border-radius: 2px;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+        .strength-bar-fill.weak   { width: 33%; background-color: #ef4444; }
+        .strength-bar-fill.medium { width: 66%; background-color: #f59e0b; }
+        .strength-bar-fill.strong { width: 100%; background-color: #22c55e; }
+
+        /* Respect reduced-motion globally */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
     </style>
 </head>
 

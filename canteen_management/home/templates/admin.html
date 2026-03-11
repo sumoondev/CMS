@@ -1,14 +1,14 @@
 {% extends "index.html" %} {% block start %}
 <div class="container-fluid">
   <!-- Header -->
-  <div class="row bg-dark text-white py-3 mb-4">
+  <div class="row bg-dark text-white py-3 mb-4 animate-slide-down">
     <div class="col-md-6">
       <h3 class="mb-0">
         <i class="fa fa-utensils"></i> Canteen Admin Dashboard
       </h3>
     </div>
     <div class="col-md-6 text-end">
-      <span class="me-3">Welcome, {{ user.username }}</span>
+      <span class="me-3">Welcome, <strong>{{ user.username }}</strong></span>
       <form method="post" action="{% url 'logout' %}" class="d-inline">
         {% csrf_token %}
         <button type="submit" class="btn btn-danger btn-sm">
@@ -20,8 +20,8 @@
 
   <div class="row">
     <!-- Left Side - Inventory Table -->
-    <div class="col-lg-8 mb-4">
-      <div class="card shadow-sm">
+    <div class="col-lg-8 mb-4 animate-fade-in-up stagger-1">
+      <div class="card shadow-sm admin-card">
         <div class="card-header bg-primary text-white">
           <h5 class="mb-0"><i class="fa fa-list"></i> Inventory Items</h5>
         </div>
@@ -40,19 +40,19 @@
 
           <div class="d-flex flex-wrap gap-2 mb-3">
             <a
-              class="btn btn-sm {% if current_filter == 'all' %}btn-dark{% else %}btn-outline-dark{% endif %}"
+              class="btn btn-sm admin-filter-chip {% if current_filter == 'all' %}btn-dark{% else %}btn-outline-dark{% endif %}"
               href="?filter=all&sort={{ current_sort }}&dir={{ current_dir }}"
             >
               All
             </a>
             <a
-              class="btn btn-sm {% if current_filter == 'low_stock' %}btn-warning{% else %}btn-outline-warning{% endif %}"
+              class="btn btn-sm admin-filter-chip {% if current_filter == 'low_stock' %}btn-warning{% else %}btn-outline-warning{% endif %}"
               href="?filter=low_stock&sort={{ current_sort }}&dir={{ current_dir }}"
             >
-              Low Stock
+              <i class="fa fa-exclamation-triangle me-1"></i>Low Stock
             </a>
             <a
-              class="btn btn-sm {% if current_filter == 'unavailable' %}btn-secondary{% else %}btn-outline-secondary{% endif %}"
+              class="btn btn-sm admin-filter-chip {% if current_filter == 'unavailable' %}btn-secondary{% else %}btn-outline-secondary{% endif %}"
               href="?filter=unavailable&sort={{ current_sort }}&dir={{ current_dir }}"
             >
               Unavailable
@@ -60,32 +60,37 @@
           </div>
 
           <div class="table-responsive">
-            <table class="table table-hover table-striped">
+            <table class="table table-hover admin-table">
               <thead class="table-dark">
                 <tr>
                   <th>
                     <a class="text-white text-decoration-none" href="?filter={{ current_filter }}&sort=name&dir={% if current_sort == 'name' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
                       <i class="fa fa-tag"></i> Item Name
+                      {% if current_sort == 'name' %}<i class="fa fa-sort-{{ current_dir }} ms-1" style="font-size:0.7rem"></i>{% endif %}
                     </a>
                   </th>
                   <th>
                     <a class="text-white text-decoration-none" href="?filter={{ current_filter }}&sort=category&dir={% if current_sort == 'category' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
                       <i class="fa fa-folder"></i> Category
+                      {% if current_sort == 'category' %}<i class="fa fa-sort-{{ current_dir }} ms-1" style="font-size:0.7rem"></i>{% endif %}
                     </a>
                   </th>
                   <th>
                     <a class="text-white text-decoration-none" href="?filter={{ current_filter }}&sort=price&dir={% if current_sort == 'price' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
                       <i class="fa fa-dollar-sign"></i> Price
+                      {% if current_sort == 'price' %}<i class="fa fa-sort-{{ current_dir }} ms-1" style="font-size:0.7rem"></i>{% endif %}
                     </a>
                   </th>
                   <th>
                     <a class="text-white text-decoration-none" href="?filter={{ current_filter }}&sort=quantity&dir={% if current_sort == 'quantity' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
                       <i class="fa fa-boxes"></i> Quantity
+                      {% if current_sort == 'quantity' %}<i class="fa fa-sort-{{ current_dir }} ms-1" style="font-size:0.7rem"></i>{% endif %}
                     </a>
                   </th>
                   <th>
                     <a class="text-white text-decoration-none" href="?filter={{ current_filter }}&sort=status&dir={% if current_sort == 'status' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
                       <i class="fa fa-check-circle"></i> Status
+                      {% if current_sort == 'status' %}<i class="fa fa-sort-{{ current_dir }} ms-1" style="font-size:0.7rem"></i>{% endif %}
                     </a>
                   </th>
                   <th><i class="fa fa-cog"></i> Actions</th>
@@ -93,24 +98,26 @@
               </thead>
               <tbody>
                 {% for item in page_obj %}
-                <tr>
-                  <td>{{ item.item_name }}</td>
+                <tr class="admin-table-row animate-fade-in" style="animation-delay:{{ forloop.counter0 }}00ms">
+                  <td class="fw-semibold">{{ item.item_name }}</td>
 
-                  <td>{{ item.get_category_display }}</td>
+                  <td>
+                    <span class="badge bg-light text-dark border">{{ item.get_category_display }}</span>
+                  </td>
 
                   <td>Rs. {{ item.price }}</td>
 
                   <td>
                     {% if item.quantity < 10 %}
-                    <span class="badge bg-warning text-dark">
-                      {{ item.quantity }}
+                    <span class="badge bg-warning text-dark low-stock-badge">
+                      <i class="fa fa-exclamation-triangle me-1"></i>{{ item.quantity }}
                     </span>
                     {% else %} {{ item.quantity }} {% endif %}
                   </td>
 
                   <td>
                     {% if item.is_available %}
-                    <span class="badge bg-success">Available</span>
+                    <span class="badge bg-success"><i class="fa fa-check me-1"></i>Available</span>
                     {% else %}
                     <span class="badge bg-secondary">Unavailable</span>
                     {% endif %}
@@ -197,7 +204,7 @@
 
     <!-- Right Side - Add/Update Form -->
     <div class="col-lg-4">
-      <div class="card shadow-sm">
+      <div class="card shadow-sm admin-card animate-fade-in-up stagger-2">
         <div class="card-header bg-success text-white">
           <h5 class="mb-0"><i class="fa fa-plus-circle"></i> Add New Item</h5>
         </div>
@@ -290,7 +297,7 @@
       </div>
 
       <!-- Quick Edit Card -->
-      <div class="card shadow-sm mb-3">
+      <div class="card shadow-sm mb-3 admin-card animate-fade-in-up stagger-4" id="quick-edit-card">
         <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
           <h6 class="mb-0"><i class="fa fa-pen"></i> Quick Edit</h6>
           <button type="button" class="btn btn-sm btn-light" id="quick-edit-close">
@@ -301,7 +308,7 @@
           <div id="quick-edit-placeholder" class="text-muted small">
             Select an item from the table to edit it here.
           </div>
-          <form id="quick-edit-form" method="POST" enctype="multipart/form-data" class="d-none">
+          <form id="quick-edit-form" method="POST" enctype="multipart/form-data" style="display:none; opacity:0;" class="quick-edit-animated">
             {% csrf_token %}
             <div class="mb-2">
               <label class="form-label">Item Name</label>
@@ -339,27 +346,23 @@
       </div>
 
       <!-- Quick Stats Card -->
-      <div class="card shadow-sm mt-3">
+      <div class="card shadow-sm mt-3 admin-card animate-fade-in-up stagger-5">
         <div class="card-header bg-info text-white">
           <h6 class="mb-0"><i class="fa fa-chart-bar"></i> Quick Stats</h6>
         </div>
         <div class="card-body">
           <div class="d-flex justify-content-between mb-2">
             <span><i class="fa fa-box"></i> Total Items:</span>
-            <strong>{{ stats.total_items }}</strong>
+            <strong class="stat-number" data-target="{{ stats.total_items }}">0</strong>
           </div>
           <div class="d-flex justify-content-between mb-2">
             <span><i class="fa fa-check text-success"></i> Available:</span>
-            <strong class="text-success">{{ stats.available_items }}</strong>
+            <strong class="text-success stat-number" data-target="{{ stats.available_items }}">0</strong>
           </div>
           <div class="d-flex justify-content-between">
-            
-            <span
-              ><i class="fa fa-exclamation-triangle text-warning"></i> Low
-              Stock (&lt; {{ low_stock_threshold }}):</span
-            >
-            
-            <strong class="text-warning">{{ stats.low_stock_items }}</strong>
+            <span><i class="fa fa-exclamation-triangle text-warning"></i> Low
+              Stock (&lt; {{ low_stock_threshold }}):</span>
+            <strong class="text-warning stat-number" data-target="{{ stats.low_stock_items }}">0</strong>
           </div>
         </div>
       </div>
@@ -367,15 +370,64 @@
   </div>
 </div>
 
+<style>
+  /* Admin-specific styles */
+  .admin-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: none;
+  }
+  .admin-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important;
+  }
+
+  .admin-filter-chip {
+    border-radius: 999px;
+    transition: all 0.2s ease;
+  }
+
+  .admin-table tbody tr {
+    transition: background-color 0.2s ease, transform 0.15s ease;
+  }
+  .admin-table tbody tr:hover {
+    background-color: rgba(29, 78, 216, 0.04);
+  }
+
+  .low-stock-badge {
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  /* Quick edit slide animation */
+  .quick-edit-animated {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateY(8px);
+  }
+  .quick-edit-animated.is-visible {
+    opacity: 1 !important;
+    transform: translateY(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .admin-table tbody tr,
+    .admin-card,
+    .quick-edit-animated,
+    .low-stock-badge {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+</style>
+
 <script>
+    // Auto-hide alerts
     setTimeout(function () {
         let alerts = document.querySelectorAll('.auto-hide');
         alerts.forEach(function (alert) {
             let bsAlert = new bootstrap.Alert(alert);
             bsAlert.close();
         });
-    }, 3000); // 3 seconds
+    }, 3000);
 
+    // Quick Edit with slide animation
     const quickEditForm = document.getElementById('quick-edit-form');
     const quickEditPlaceholder = document.getElementById('quick-edit-placeholder');
     const quickEditClose = document.getElementById('quick-edit-close');
@@ -394,8 +446,11 @@
             quickEditForm.querySelector('[name="quantity"]').value = button.dataset.quantity || '';
             quickEditForm.querySelector('[name="is_available"]').checked = button.dataset.available === 'True';
 
-            quickEditForm.classList.remove('d-none');
-            quickEditPlaceholder.classList.add('d-none');
+            quickEditForm.style.display = 'block';
+            quickEditPlaceholder.style.display = 'none';
+            // Trigger reflow then animate
+            quickEditForm.offsetHeight;
+            quickEditForm.classList.add('is-visible');
             quickEditForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
     });
@@ -403,14 +458,34 @@
     if (quickEditClose) {
         quickEditClose.addEventListener('click', () => {
             if (quickEditForm) {
-                quickEditForm.reset();
-                quickEditForm.classList.add('d-none');
+                quickEditForm.classList.remove('is-visible');
+                setTimeout(() => {
+                    quickEditForm.style.display = 'none';
+                    quickEditForm.reset();
+                }, 300);
             }
             if (quickEditPlaceholder) {
-                quickEditPlaceholder.classList.remove('d-none');
+                quickEditPlaceholder.style.display = 'block';
             }
         });
     }
+
+    // Animated stat counters
+    document.querySelectorAll('.stat-number').forEach(el => {
+        const target = parseInt(el.dataset.target) || 0;
+        if (target === 0) return;
+        const duration = 800;
+        const start = performance.now();
+        function tick(now) {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            // ease-out curve
+            const eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.round(eased * target);
+            if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+    });
 </script>
 
 {% endblock %}

@@ -44,8 +44,21 @@ class RegistrationForm(forms.Form):
     )
     password = forms.CharField(
         strip=False,
-        widget=forms.PasswordInput(attrs={'class': 'form-control mb-2'}),
+        widget=forms.PasswordInput(attrs={'class': 'form-control mb-2', 'id': 'id_password'}),
     )
+    password_confirm = forms.CharField(
+        strip=False,
+        widget=forms.PasswordInput(attrs={'class': 'form-control mb-2', 'id': 'id_password_confirm'}),
+        label='Confirm Password',
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        password_confirm = cleaned_data.get('password_confirm')
+        if password and password_confirm and password != password_confirm:
+            self.add_error('password_confirm', 'Passwords do not match.')
+        return cleaned_data
 
     def clean_user_code(self):
         user_code = (self.cleaned_data.get('user_code') or '').strip()
@@ -153,7 +166,7 @@ class InventoryItemForm(forms.ModelForm):
         if extension not in ALLOWED_IMAGE_EXTENSIONS:
             raise ValidationError('Upload a JPG, PNG, WEBP, or GIF image.')
 
-        if content_type and content_type not in ALLOWED_IMAGE_CONTENT_TYPES:
+        if not content_type or content_type not in ALLOWED_IMAGE_CONTENT_TYPES:
             raise ValidationError('Upload a valid image file.')
 
         if food_image.size > MAX_IMAGE_SIZE:

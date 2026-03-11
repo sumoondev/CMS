@@ -4,8 +4,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse,JsonResponse
 import json
-from .models import *
-from orders.models import *
+from .models import Inventory
 from django.contrib.auth.decorators import login_required
 
 

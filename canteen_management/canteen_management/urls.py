@@ -19,12 +19,13 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import path
-from inventory.views import *
-from orders.views import *
-from payments.views import *
-from accounts.views import *
-from accounts.views import *
-from home.views import *
+from inventory.views import inventory_list
+from orders.views import checkout
+from payments.views import receipt_view
+from home.views import (
+    index_page, login_page, register_page, logout_view,
+    admin_page, admin_update_item, admin_delete_item,
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
